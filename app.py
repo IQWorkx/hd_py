@@ -2,12 +2,13 @@ import os
 import uuid
 import qrcode
 from io import BytesIO
+from datetime import datetime
 from flask import Flask, request, redirect, url_for, send_file, flash, session
 import mysql.connector
 import openpyxl
 from visitor_screens import render_visitor_form, render_qr_display
 from check_screens import render_checkin_form, render_checkout_form
-from admin_screens import render_admin_login_form, render_admin_dashboard
+from admin_screens import render_admin_login_form, render_admin_dashboard, render_current_visitors, render_historical_visitors, render_admin_stats_dashboard
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Change this in production
@@ -153,17 +154,57 @@ def admin_dashboard():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT *, TIMESTAMPDIFF(MINUTE, checkin_time, NOW()) as duration FROM visitors WHERE status!='OUT' ORDER BY checkin_time DESC")
+        # For dashboard stats
+        cursor.execute("SELECT COUNT(*) as total FROM visitors")
+        total_visitors = cursor.fetchone()['total']
+        cursor.execute("SELECT COUNT(*) as today FROM visitors WHERE DATE(checkin_time) = CURDATE()")
+        today_visitors = cursor.fetchone()['today']
+        cursor.execute("SELECT COUNT(*) as current FROM visitors WHERE status != 'OUT'")
+        current_visitors = cursor.fetchone()['current']
+        cursor.execute("SELECT COUNT(*) as historical FROM visitors WHERE status = 'OUT'")
+        historical_visitors = cursor.fetchone()['historical']
+        # For chart: visitors per day (last 7 days)
+        cursor.execute("SELECT DATE(checkin_time) as day, COUNT(*) as count FROM visitors WHERE checkin_time IS NOT NULL GROUP BY day ORDER BY day DESC LIMIT 7")
+        chart_data = cursor.fetchall()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        flash(f"Database error: {e}")
+        total_visitors = today_visitors = current_visitors = historical_visitors = 0
+        chart_data = []
+    return render_admin_stats_dashboard(total_visitors, today_visitors, current_visitors, historical_visitors, chart_data)
+
+@app.route('/admin/current-visitors')
+def admin_current_visitors():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM visitors WHERE status != 'OUT' ORDER BY checkin_time DESC")
         current_visitors = cursor.fetchall()
-        cursor.execute("SELECT *, TIMESTAMPDIFF(MINUTE, checkin_time, checkout_time) as duration FROM visitors WHERE status='OUT' AND checkin_time IS NOT NULL AND checkout_time IS NOT NULL ORDER BY checkout_time DESC")
-        historical_visitors = cursor.fetchall()
         cursor.close()
         conn.close()
     except Exception as e:
         flash(f"Database error: {e}")
         current_visitors = []
+    return render_current_visitors(current_visitors)
+
+@app.route('/admin/historical-visitors')
+def admin_historical_visitors():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM visitors WHERE status = 'OUT' AND checkin_time IS NOT NULL AND checkout_time IS NOT NULL ORDER BY checkout_time DESC")
+        historical_visitors = cursor.fetchall()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        flash(f"Database error: {e}")
         historical_visitors = []
-    return render_admin_dashboard(current_visitors, historical_visitors)
+    return render_historical_visitors(historical_visitors)
 
 @app.route('/admin/export')
 def admin_export():
@@ -252,6 +293,24 @@ def checkin():
     except Exception as e:
         flash(f"Database error: {e}")
     return redirect(url_for('checkin'))
+
+# Register a Jinja2 filter for datetime formatting
+@app.template_filter('datetime')
+def format_datetime(value, format='medium'):
+    if not value:
+        return ''
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except Exception:
+            return value
+    if format == 'full':
+        fmt = "%A, %d %B %Y, %I:%M %p"
+    elif format == 'medium':
+        fmt = "%d %b %Y, %I:%M %p"
+    else:
+        fmt = "%Y-%m-%d %H:%M"
+    return value.strftime(fmt)
 
 if __name__ == '__main__':
     app.run(debug=True,  port=6100)
