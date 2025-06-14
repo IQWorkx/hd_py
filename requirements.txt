@@ -1,5 +1,12 @@
 flask
+markupsafe
 mysql-connector-python
 qrcode
 pillow
 openpyxl
+python-dotenv
+openai
+scikit-learn
+pandas
+numpy
+matplotlib

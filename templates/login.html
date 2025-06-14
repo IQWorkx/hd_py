@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <!-- MDB CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.2.0/mdb.min.css">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+            color: #222;
+            font-family: 'Roboto', Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            border-radius: 1rem;
+            box-shadow: 0 4px 24px rgba(0,150,136,0.10);
+        }
+        .btn-primary {
+            background-color: #009688;
+            border-color: #009688;
+        }
+        .btn-primary:hover {
+            background-color: #00796b;
+            border-color: #00796b;
+        }
+        h2 {
+            color: #009688;
+        }
+        ul {
+            color: #d9534f;
+            padding-left: 1.5rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card p-4 mt-5">
+                    <div class="card-body">
+                        <h2 class="text-center mb-4">Admin Login</h2>
+                        <form method="post" action="/admin/login">
+                            <div class="mb-3">
+                                <label class="form-label">Username:</label>
+                                <input class="form-control" type="text" name="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password:</label>
+                                <input class="form-control" type="password" name="password" required>
+                            </div>
+                            <div class="d-grid">
+                                <button class="btn btn-primary" type="submit">Login</button>
+                            </div>
+                        </form>
+                        {% with messages = get_flashed_messages() %}
+                            {% if messages %}
+                                <ul>
+                                    {% for msg in messages %}
+                                        <li>{{ msg }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -3,12 +3,52 @@ import uuid
 import qrcode
 from io import BytesIO
 from datetime import datetime
-from flask import Flask, request, redirect, url_for, send_file, flash, session
+from flask import Flask, request, redirect, url_for, send_file, flash, session, jsonify
 import mysql.connector
 import openpyxl
-from visitor_screens import render_visitor_form, render_qr_display
-from check_screens import render_checkin_form, render_checkout_form
+from theme import themed
+from visitor_screens import render_visitor_form, render_qr_display, render_checkout_form
+from check_screens import render_checkin_form
 from admin_screens import render_admin_login_form, render_admin_dashboard, render_current_visitors, render_historical_visitors, render_admin_stats_dashboard
+from ai_helpers import generate_purpose_suggestions, get_chatbot_response, analyze_visitor_patterns, predict_visitor_traffic
+
+# Define login form
+LOGIN_FORM = '''
+<div class="container-fluid min-vh-100 d-flex flex-column py-4">
+  <div class="row flex-grow-1 justify-content-center">
+    <div class="col-md-6">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header bg-primary text-white p-4">
+          <h2 class="mb-0">Visitor Login</h2>
+        </div>
+        <div class="card-body p-4">
+          <form method="post" action="/login">
+            <div class="mb-4">
+              <label class="form-label fw-medium">Enter Your Temporary ID:</label>
+              <input class="form-control form-control-lg" type="text" name="temp_id" required>
+            </div>
+            <div class="d-grid gap-2">
+              <button class="btn btn-primary btn-lg btn-raised" type="submit">
+                <i class="fas fa-sign-in-alt me-2"></i>Login
+              </button>
+              <a class="btn btn-outline-secondary btn-lg btn-raised" href="/">
+                <i class="fas fa-arrow-left me-2"></i>Back to Registration
+              </a>
+            </div>
+          </form>
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              <div class="alert alert-info mt-3">
+                <ul class="mb-0">{% for msg in messages %}<li>{{ msg }}</li>{% endfor %}</ul>
+              </div>
+            {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+'''
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Change this in production
@@ -32,37 +72,62 @@ def get_db_connection():
 def index():
     return render_visitor_form()
 
-@app.route('/register', methods=['POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-    name = request.form['name']
-    email = request.form['email']
-    phone = request.form['phone']
-    company = request.form['company']
-    purpose = request.form['purpose']
-    whom_to_meet = request.form['whom_to_meet']
-    temp_id = str(uuid.uuid4())[:8]
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO visitors (name, email, phone, company, purpose, whom_to_meet, temp_id, status, checkin_time)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
-        """, (name, email, phone, company, purpose, whom_to_meet, temp_id, 'IN'))
-        conn.commit()
-        cursor.close()
-        conn.close()
-    except Exception as e:
-        flash(f"Database error: {e}")
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        phone = request.form['phone']
+        company = request.form['company']
+        purpose = request.form['purpose']
+        whom_to_meet = request.form['whom_to_meet']
+        temp_id = str(uuid.uuid4())[:8]
+        try:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO visitors (name, email, phone, company, purpose, whom_to_meet, temp_id, status, checkin_time)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
+            """, (name, email, phone, company, purpose, whom_to_meet, temp_id, 'IN'))
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            flash(f"Database error: {e}")
+            return redirect(url_for('index'))
+        return render_qr_display(name, company, temp_id)
+    else:  # GET request
+        temp_id = request.args.get('temp_id')
+        if temp_id:
+            try:
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT name, company FROM visitors WHERE temp_id=%s", (temp_id,))
+                visitor = cursor.fetchone()
+                cursor.close()
+                conn.close()
+                if visitor:
+                    name, company = visitor
+                    return render_qr_display(name, company, temp_id)
+            except Exception as e:
+                flash(f"Database error: {e}")
         return redirect(url_for('index'))
-    return render_qr_display(name, company, temp_id)
 
-@app.route('/qr/<temp_id>')
-def qr_code(temp_id):
+@app.route('/qr_code')
+def qr_code():
+    temp_id = request.args.get('temp_id')
+    if not temp_id:
+        return "Error: No temp_id provided", 400
     img = qrcode.make(temp_id)
     buf = BytesIO()
     img.save(buf, format='PNG')
     buf.seek(0)
-    return send_file(buf, mimetype='image/png')
+    response = send_file(buf, mimetype='image/png')
+    # Add CORS headers to allow the image to be accessed by html2canvas
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    response.headers.add('Access-Control-Allow-Methods', 'GET')
+    return response
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -95,6 +160,7 @@ def admin_login():
     password = request.form['password']
     if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
         session['admin_logged_in'] = True
+        session['admin_username'] = username
         return redirect(url_for('admin_dashboard'))
     flash('Invalid credentials')
     return redirect(url_for('admin_login'))
@@ -102,6 +168,7 @@ def admin_login():
 @app.route('/admin/logout')
 def admin_logout():
     session.pop('admin_logged_in', None)
+    session.pop('admin_username', None)
     return redirect(url_for('admin_login'))
 
 @app.route('/migrate')
@@ -311,6 +378,66 @@ def format_datetime(value, format='medium'):
     else:
         fmt = "%Y-%m-%d %H:%M"
     return value.strftime(fmt)
+
+# AI API Endpoints
+@app.route('/api/purpose-suggestions')
+def api_purpose_suggestions():
+    company = request.args.get('company', '')
+    if not company:
+        return jsonify({'error': 'Company name is required', 'suggestions': []})
+
+    suggestions = generate_purpose_suggestions(company)
+    return jsonify({'suggestions': suggestions})
+
+@app.route('/api/chatbot', methods=['POST'])
+def api_chatbot():
+    data = request.json
+    if not data or 'message' not in data:
+        return jsonify({'error': 'Message is required', 'response': 'Please provide a message'})
+
+    message = data['message']
+    visitor_name = data.get('visitor_name', '')
+
+    response = get_chatbot_response(message, visitor_name)
+    return jsonify({'response': response})
+
+@app.route('/api/visitor-analytics')
+def api_visitor_analytics():
+    if not session.get('admin_logged_in'):
+        return jsonify({'error': 'Unauthorized access'})
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM visitors WHERE checkin_time IS NOT NULL")
+        visitors_data = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        analytics = analyze_visitor_patterns(visitors_data)
+        return jsonify(analytics)
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+@app.route('/api/visitor-predictions')
+def api_visitor_predictions():
+    if not session.get('admin_logged_in'):
+        return jsonify({'error': 'Unauthorized access'})
+
+    days = request.args.get('days', 7, type=int)
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM visitors WHERE checkin_time IS NOT NULL")
+        visitors_data = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        predictions = predict_visitor_traffic(visitors_data, days)
+        return jsonify(predictions)
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 if __name__ == '__main__':
     app.run(debug=True,  port=6100)

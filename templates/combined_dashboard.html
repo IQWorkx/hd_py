@@ -1,0 +1,196 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block css %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" />
+<!-- Popper.js for MDB dropdowns -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3 class="mb-4">Current Visitors</h3>
+  <div class="card mb-5">
+    <div class="card-body">
+      <table id="currentVisitorsTable" class="table table-bordered table-striped">
+        <thead class="table-light">
+        <tr>
+          <th>Sl No</th>
+          <th>Name</th>
+          <th>Company</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Purpose</th>
+          <th>Whom to Meet</th>
+          <th>Check-In</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for v in current_visitors %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ v.name }}</td>
+            <td>{{ v.company }}</td>
+            <td>{{ v.phone }}</td>
+            <td>{{ v.email }}</td>
+            <td>{{ v.purpose }}</td>
+            <td>{{ v.whom_to_meet }}</td>
+            <td>{{ v.checkin_time|datetime('medium') }}</td>
+            <td><a class="btn btn-sm btn-warning" href="/admin/logout_visitor/{{ v.id }}"><i class="fas fa-sign-out-alt me-2"></i>Clock Out</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <h3 class="mb-4">Historical Visitors</h3>
+  <div class="mb-3">
+    <button id="toggleViewBtn" class="btn btn-outline-primary btn-sm">
+      <i class="fas fa-table me-2"></i>Switch to Card View
+    </button>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div id="visitorHistoryTableView">
+        <table id="visitorHistoryTable" class="table table-bordered table-striped">
+          <thead class="table-light">
+          <tr>
+            <th>Sl No</th>
+            <th>Name</th>
+            <th>Company</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Purpose</th>
+            <th>Whom to Meet</th>
+            <th>Temp ID</th>
+            <th>Check-In</th>
+            <th>Check-Out</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for v in historical_visitors %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ v.name }}</td>
+              <td>{{ v.company }}</td>
+              <td>{{ v.phone }}</td>
+              <td>{{ v.email }}</td>
+              <td>{{ v.purpose }}</td>
+              <td>{{ v.whom_to_meet }}</td>
+              <td>{{ v.temp_id }}</td>
+              <td>{{ v.checkin_time|datetime('medium') }}</td>
+              <td>{{ v.checkout_time|datetime('medium') if v.checkout_time else '' }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div id="visitorHistoryCardView" style="display:none;">
+        <div class="mb-3">
+          <input type="text" id="cardSearchInput" class="form-control" placeholder="Search visitor history...">
+        </div>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="cardContainer">
+          {% for v in historical_visitors %}
+          <div class="col visitor-card">
+            <div class="card h-100 shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title">{{ v.name }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">{{ v.company }}</h6>
+                <ul class="list-group list-group-flush mb-2">
+                  <li class="list-group-item"><strong>Email:</strong> {{ v.email }}</li>
+                  <li class="list-group-item"><strong>Phone:</strong> {{ v.phone }}</li>
+                  <li class="list-group-item"><strong>Purpose:</strong> {{ v.purpose }}</li>
+                  <li class="list-group-item"><strong>Whom to Meet:</strong> {{ v.whom_to_meet }}</li>
+                  <li class="list-group-item"><strong>Temp ID:</strong> {{ v.temp_id }}</li>
+                  <li class="list-group-item"><strong>Status:</strong> {{ v.status }}</li>
+                  <li class="list-group-item"><strong>Check-In:</strong> {{ v.checkin_time }}</li>
+                  <li class="list-group-item"><strong>Check-Out:</strong> {{ v.checkout_time }}</li>
+                </ul>
+              </div>
+              <div class="card-footer text-end">
+                <span class="badge bg-primary">Visitor</span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <nav>
+          <ul class="pagination justify-content-center mt-3" id="cardPagination"></ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js_before %}
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<!-- DataTables Buttons for Excel export -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+{% endblock %}
+
+{% block js_after %}
+<script>
+  $(document).ready(function() {
+    // Current visitors table
+    var currentTable = $("#currentVisitorsTable").DataTable({
+      "dom": "Bfrtip",
+      "buttons": [
+        {
+          "extend": "excel",
+          "text": "<i class=\"fas fa-file-excel me-2\"></i>Download",
+          "className": "btn btn-sm btn-primary dt-custom-btn",
+          "filename": "current_visitors"
+        }
+      ]
+    });
+    
+    // Historical visitors table
+    var historyTable = $("#visitorHistoryTable").DataTable({
+      "paging": true,
+      "dom": "Bfrtip",
+      "buttons": [
+        {
+          "extend": "excelHtml5",
+          "title": "Visitor History",
+          "filename": "historical_visitors",
+          "text": "<i class=\"fas fa-file-excel me-2\"></i>Download",
+          "className": "btn btn-sm btn-primary"
+        }
+      ]
+    });
+    
+    // Export buttons
+    $("#exportCurrentVisitors").on("click", function() {
+      currentTable.button(".buttons-excel").trigger();
+    });
+    
+    $("#exportVisitorHistory").on("click", function() {
+      historyTable.button(0).trigger();
+    });
+    
+    // Toggle view
+    $("#toggleViewBtn").click(function() {
+      if ($("#visitorHistoryTableView").is(":visible")) {
+        $("#visitorHistoryTableView").hide();
+        $("#visitorHistoryCardView").show();
+        $(this).html("<i class=\"fas fa-table me-2\"></i>Switch to Table View");
+      } else {
+        $("#visitorHistoryCardView").hide();
+        $("#visitorHistoryTableView").show();
+        $(this).html("<i class=\"fas fa-grip-horizontal me-2\"></i>Switch to Card View");
+      }
+    });
+  });
+</script>
+{% endblock %}

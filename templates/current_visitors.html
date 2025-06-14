@@ -1,0 +1,82 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Current Visitors{% endblock %}
+
+{% block css %}
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" />
+<!-- Popper.js for MDB dropdowns -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card">
+    <div class="card-body">
+      <table id="currentVisitorsTable" class="table table-bordered table-striped">
+        <thead class="table-light">
+        <tr>
+          <th>Sl No</th>
+          <th>Name</th>
+          <th>Company</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Purpose</th>
+          <th>Whom to Meet</th>
+          <th>Check-In</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for v in current_visitors %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ v.name }}</td>
+            <td>{{ v.company }}</td>
+            <td>{{ v.phone }}</td>
+            <td>{{ v.email }}</td>
+            <td>{{ v.purpose }}</td>
+            <td>{{ v.whom_to_meet }}</td>
+            <td>{{ v.checkin_time|datetime('medium') }}</td>
+            <td><a class="btn btn-sm btn-warning" href="/admin/logout_visitor/{{ v.id }}"><i class="fas fa-sign-out-alt me-2"></i>Clock Out</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js_before %}
+<!-- DataTables JS -->
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<!-- DataTables Buttons for Excel export -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+{% endblock %}
+
+{% block js_after %}
+<script>
+  $(document).ready(function() {
+    var table = $("#currentVisitorsTable").DataTable({
+      "dom": "Bfrtip",
+      "buttons": [
+        {
+          "extend": "excel",
+          "text": "<i class=\"fas fa-file-excel me-2\"></i>Download",
+          "className": "btn btn-sm btn-primary dt-custom-btn",
+          "filename": "current_visitors"
+        }
+      ]
+    });
+    $("#exportCurrentVisitors").on("click", function() {
+      table.button(".buttons-excel").trigger();
+    });
+  });
+</script>
+{% endblock %}
