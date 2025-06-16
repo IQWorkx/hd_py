@@ -318,23 +318,36 @@ def checkout():
     if request.method == 'GET':
         return render_checkout_form()
     temp_id = request.form['temp_id']
+    result = {"success": False, "message": "Unknown error."}
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT status FROM visitors WHERE temp_id=%s", (temp_id,))
         row = cursor.fetchone()
         if not row:
-            flash("Invalid Temp ID.")
+            msg = "Invalid Temp ID."
+            flash(msg)
+            result["message"] = msg
         elif row[0] == 'OUT':
-            flash("Visitor already checked out.")
+            msg = "Visitor already checked out."
+            flash(msg)
+            result["message"] = msg
         else:
             cursor.execute("UPDATE visitors SET status='OUT' WHERE temp_id=%s", (temp_id,))
             conn.commit()
-            flash("Checkout successful.")
+            msg = "Checkout successful."
+            flash(msg)
+            result["success"] = True
+            result["message"] = msg
         cursor.close()
         conn.close()
     except Exception as e:
-        flash(f"Database error: {e}")
+        msg = f"Database error: {e}"
+        flash(msg)
+        result["message"] = msg
+    # If AJAX/fetch, return JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.accept_mimetypes['application/json'] > request.accept_mimetypes['text/html']:
+        return jsonify(result)
     return redirect(url_for('checkout'))
 
 @app.route('/checkin', methods=['GET', 'POST'])

@@ -4,10 +4,10 @@
 
 {% block css %}
 <!-- DataTables CSS -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" />
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dataTables.bootstrap5.min.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/buttons.bootstrap5.min.css') }}" />
 <!-- Popper.js for MDB dropdowns -->
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+<script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
 {% endblock %}
 
 {% block content %}

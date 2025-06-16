@@ -1,0 +1,93 @@
+<!-- Visitor Header: Place this at the top of visitor screens -->
+<div class="visitor-header d-flex align-items-center justify-content-between py-3 px-4 mb-4 bg-white shadow-sm rounded">
+  <div class="d-flex align-items-center">
+    <img src="/static/logo.png" alt="Company Logo" style="height:48px; margin-right:1rem;">
+    <h1 class="h4 mb-0 text-primary">Welcome to IQHired</h1>
+  </div>
+</div>
+<style>
+.visitor-header {
+  border-bottom: 1px solid #e0e0e0;
+}
+</style>
+<script>
+// Reset the flag for a new registration session
+localStorage.removeItem('welcomeAudioPlayed');
+function playWelcomeAudio() {
+  //if (!window.__welcomeAudioPlayed && !localStorage.getItem('welcomeAudioPlayed')) {
+  //  window.__welcomeAudioPlayed = true;
+  //  localStorage.setItem('welcomeAudioPlayed', '1');
+  //  const msg = new SpeechSynthesisUtterance('Welcome to IQHired. Please proceed with your registration.');
+  //  msg.lang = 'en-US';
+  //  msg.rate = 1.05;
+  //  window.speechSynthesis.speak(msg);
+  //}
+}
+function isOnRegistrationForm() {
+  return document.querySelector('form[action="/register"]') !== null;
+}
+// Play audio when user interacts with the registration form
+window.addEventListener('DOMContentLoaded', function() {
+  var form = document.querySelector('form[action="/register"]');
+  if (form) {
+    var played = false;
+    var playOnce = function() {
+      if (!played) {
+        playWelcomeAudio();
+        played = true;
+        form.removeEventListener('input', playOnce, true);
+      }
+    };
+    form.addEventListener('input', playOnce, true);
+  }
+});
+// Webcam motion detection (play only if on registration form and not played yet)
+(function() {
+  let lastImageData;
+  let motionTriggered = false;
+  function hasMotion(data1, data2, threshold = 30) {
+    if (!data1 || !data2) return false;
+    let diff = 0;
+    for (let i = 0; i < data1.length; i += 4) {
+      diff += Math.abs(data1[i] - data2[i]);
+      diff += Math.abs(data1[i+1] - data2[i+1]);
+      diff += Math.abs(data1[i+2] - data2[i+2]);
+    }
+    return diff > threshold * 10000;
+  }
+  function startMotionDetection() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+      .then(function(stream) {
+        const video = document.createElement('video');
+        video.style.display = 'none';
+        document.body.appendChild(video);
+        video.srcObject = stream;
+        video.play();
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        setInterval(function() {
+          if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            if (lastImageData && hasMotion(imageData, lastImageData)) {
+              if (!motionTriggered && isOnRegistrationForm() && !localStorage.getItem('welcomeAudioPlayed')) {
+                motionTriggered = true;
+                window.__welcomeAudioPlayed = false;
+                playWelcomeAudio();
+                setTimeout(() => { motionTriggered = false; }, 5000);
+              }
+            }
+            lastImageData = new Uint8ClampedArray(imageData);
+          }
+        }, 1000);
+      })
+      .catch(function(err) {
+        // User denied camera or not available
+      });
+  }
+  startMotionDetection();
+})();
+</script>
