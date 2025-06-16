@@ -326,7 +326,7 @@ def checkout():
             flash(msg)
             result["message"] = msg
         else:
-            cursor.execute("UPDATE visitors SET status='OUT' WHERE temp_id=%s", (temp_id,))
+            cursor.execute("UPDATE visitors SET status='OUT', checkout_time=NOW() WHERE temp_id=%s", (temp_id,))
             conn.commit()
             msg = _('Checkout successful.')
             flash(msg)
