@@ -1,4 +1,5 @@
 from flask import render_template_string, url_for, request, render_template
+from flask_babel import _
 from theme import themed
 from ai_helpers import generate_purpose_suggestions, get_chatbot_response
 from screens import CHECKOUT_FORM
@@ -11,48 +12,48 @@ VISITOR_FORM = '''
     <div class="col-12 col-lg-7 d-flex align-items-stretch">
       <div class="card w-100 shadow-sm d-flex flex-column justify-content-start">
         <div class="card-header bg-primary text-white p-3">
-          <h3 class="mb-0">Visitor Registration</h3>
+          <h3 class="mb-0">{{ _('Visitor Registration') }}</h3>
         </div>
         <div class="card-body p-4">
           <form method="post" action="/register">
             <div class="row">
               <div class="col-md-6 mb-3">
-                <label class="form-label fw-medium">Name:</label>
+                <label class="form-label fw-medium">{{ _('Name:') }}</label>
                 <input class="form-control form-control-lg" type="text" name="name" id="visitorName" required>
               </div>
               <div class="col-md-6 mb-3">
-                <label class="form-label fw-medium">Email:</label>
+                <label class="form-label fw-medium">{{ _('Email:') }}</label>
                 <input class="form-control form-control-lg" type="email" name="email" required>
               </div>
             </div>
             <div class="row">
               <div class="col-md-6 mb-3">
-                <label class="form-label fw-medium">Phone:</label>
+                <label class="form-label fw-medium">{{ _('Phone:') }}</label>
                 <input class="form-control form-control-lg" type="text" name="phone" required>
               </div>
               <div class="col-md-6 mb-3">
-                <label class="form-label fw-medium">Company:</label>
+                <label class="form-label fw-medium">{{ _('Company:') }}</label>
                 <input class="form-control form-control-lg" type="text" name="company" id="companyInput" required>
               </div>
             </div>
             <div class="mb-3">
-              <label class="form-label fw-medium">Whom to Meet:</label>
+              <label class="form-label fw-medium">{{ _('Whom to Meet:') }}</label>
               <input class="form-control form-control-lg" type="text" name="whom_to_meet" required>
             </div>
             <div class="mb-3">
-              <label class="form-label fw-medium">Purpose of Visit:</label>
+              <label class="form-label fw-medium">{{ _('Purpose of Visit:') }}</label>
               <textarea class="form-control form-control-lg" name="purpose" id="purposeInput" required></textarea>
               <div id="purposeSuggestions" class="mt-2" style="display:none;">
-                <p class="mb-1 text-muted fw-medium small">AI Suggestions:</p>
+                <p class="mb-1 text-muted fw-medium small">{{ _('AI Suggestions:') }}</p>
                 <div id="suggestionButtons" class="d-flex flex-wrap gap-1"></div>
               </div>
             </div>
             <div class="d-grid gap-2">
               <button class="btn btn-primary btn-lg btn-raised" type="submit">
-                <i class="fas fa-user-plus me-2"></i>Register
+                <i class="fas fa-user-plus me-2"></i>{{ _('Register') }}
               </button>
               <a class="btn btn-danger btn-lg btn-raised" href="/checkout">
-                <i class="fas fa-sign-out-alt me-2"></i>Check Out
+                <i class="fas fa-sign-out-alt me-2"></i>{{ _('Check Out') }}
               </a>
             </div>
           </form>
@@ -71,30 +72,30 @@ VISITOR_FORM = '''
     <!-- AI Agent -->
     <div class="col-12 col-lg-5 d-flex align-items-stretch">
       <div class="card w-100 shadow-sm d-flex flex-column justify-content-start">
-        <h3 class="mb-4 text-primary p-4"><i class="fas fa-robot me-2"></i>Ashley</h3>
+        <h3 class="mb-4 text-primary p-4"><i class="fas fa-robot me-2"></i>{{ _('Ashley') }}</h3>
         <div id="chatMessages" class="border rounded p-3 mx-4 mb-3" style="height: 300px; overflow-y: auto; background-color: #f8f9fa;">
           <div class="d-flex mb-3">
             <div class="rounded-circle bg-primary text-white p-2 me-2" style="width: 40px; height: 40px; text-align: center;">
               <i class="fas fa-robot"></i>
             </div>
             <div class="border rounded p-3 chat-message-bot" style="max-width: 80%; word-wrap: break-word; overflow-wrap: break-word;">
-              <p class="mb-0" style="font-size: 0.95rem;">Hello! I'm Ashley. I can help you with visitor registration and answer any questions you might have.</p>
+              <p class="mb-0" style="font-size: 0.95rem;">{{ _("Hello! I'm Ashley. I can help you with visitor registration and answer any questions you might have.") }}</p>
             </div>
           </div>
         </div>
         <div class="input-group mx-4 mb-3" style="width: 90%;">
-          <input type="text" id="chatInput" class="form-control form-control-lg" placeholder="Ask me anything...">
+          <input type="text" id="chatInput" class="form-control form-control-lg" placeholder="{{ _('Ask me anything...') }}">
           <button class="btn btn-primary" id="sendChat">
             <i class="fas fa-paper-plane"></i>
           </button>
         </div>
         <div class="mt-2 mx-4 mb-4">
-          <p class="text-muted fw-medium small" style="word-wrap: break-word; overflow-wrap: break-word;">Ashley can help you with:</p>
+          <p class="text-muted fw-medium small" style="word-wrap: break-word; overflow-wrap: break-word;">{{ _('Ashley can help you with:') }}</p>
           <ul class="text-muted small" style="word-wrap: break-word; overflow-wrap: break-word; padding-right: 10px;">
-            <li>Visitor registration process</li>
-            <li>Check-in and check-out procedures</li>
-            <li>Finding your way around</li>
-            <li>General inquiries</li>
+            <li>{{ _('Visitor registration process') }}</li>
+            <li>{{ _('Check-in and check-out procedures') }}</li>
+            <li>{{ _('Finding your way around') }}</li>
+            <li>{{ _('General inquiries') }}</li>
           </ul>
         </div>
       </div>
@@ -136,7 +137,7 @@ VISITOR_FORM = '''
     .col-lg-4, .col-lg-8 { max-width: 100%; flex: 0 0 100%; }
     .ai-equal-height { min-height: 0; }
   }
-  #qrCodeImage , #qrCodeImage img , img{
+  #qrCodeImage , #qrCodeImage img{
     width: 100px !important;
     height: 100px !important;
     object-fit: contain;
@@ -454,8 +455,8 @@ QR_DISPLAY = '''
       // Create an ID card as HTML
       const idCardHtml = `
         <div class="id-card" style="width: 400px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background-color: white;">
-          <div class="id-card-header" style="background-color: #0d6efd; color: white; padding: 15px; text-align: center;">
-            <h3>VISITOR ID CARD</h3>
+          <div class="id-card-header" style="background-color: #ff9800; color: #222 !important; padding: 15px; text-align: center;">
+            <h3 style="margin:0; letter-spacing:1px; font-weight:700;">VISITOR ID CARD</h3>
           </div>
           <div class="id-card-body" style="padding: 20px;">
             <div class="visitor-info" style="margin-bottom: 20px;">
@@ -473,7 +474,7 @@ QR_DISPLAY = '''
               </div>
             </div>
             <div class="qr-container" style="text-align: center; padding: 10px; border-top: 1px solid #eee;">
-              <img src="${qrCodeUrl}" alt="QR Code" style="max-width: 80px !important; max-height: 80px !important; margin-bottom: 8px; border: 1px solid #ddd; padding: 8px;">
+              <img src="${qrCodeUrl}" alt="QR Code" style="max-width: 160px !important; max-height: 160px !important; margin-bottom: 8px; border: 1px solid #222; padding: 8px; background: #fff;">
             </div>
           </div>
         </div>
@@ -580,8 +581,8 @@ QR_DISPLAY = '''
     // Create an ID card as HTML (same as download)
     const idCardHtml = `
       <div class="id-card" style="width: 400px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background-color: white;">
-        <div class="id-card-header" style="background-color: #0d6efd; color: white; padding: 15px; text-align: center;">
-          <h3>VISITOR ID CARD</h3>
+        <div class="id-card-header" style="background-color: #ff9800; color: #222 !important; padding: 15px; text-align: center;">
+          <h3 style="margin:0; letter-spacing:1px; font-weight:700;">VISITOR ID CARD</h3>
         </div>
         <div class="id-card-body" style="padding: 20px;">
           <div class="visitor-info" style="margin-bottom: 20px;">
@@ -599,7 +600,7 @@ QR_DISPLAY = '''
             </div>
           </div>
           <div class="qr-container" style="text-align: center; padding: 10px; border-top: 1px solid #eee;">
-            <img src="${qrCodeUrl}" alt="QR Code" style="max-width: 80px !important; max-height: 80px !important; margin-bottom: 8px; border: 1px solid #ddd; padding: 8px;">
+            <img src="${qrCodeUrl}" alt="QR Code" style="max-width: 160px !important; max-height: 160px !important; margin-bottom: 8px; border: 1px solid #222; padding: 8px; background: #fff;">
           </div>
         </div>
       </div>
@@ -700,8 +701,8 @@ QR_DISPLAY = '''
       // Create an ID card as HTML
       const idCardHtml = `
         <div class="id-card" style="width: 400px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background-color: white;">
-          <div class="id-card-header" style="background-color: #0d6efd; color: white; padding: 15px; text-align: center;">
-            <h3>VISITOR ID CARD</h3>
+          <div class="id-card-header" style="background-color: #ff9800; color: #222 !important; padding: 15px; text-align: center;">
+            <h3 style="margin:0; letter-spacing:1px; font-weight:700;">VISITOR ID CARD</h3>
           </div>
           <div class="id-card-body" style="padding: 20px;">
             <div class="visitor-info" style="margin-bottom: 20px;">
@@ -719,7 +720,7 @@ QR_DISPLAY = '''
               </div>
             </div>
             <div class="qr-container" style="text-align: center; padding: 10px; border-top: 1px solid #eee;">
-              <img src="${qrCodeUrl}" alt="QR Code" style="max-width: 80px !important; max-height: 80px !important; margin-bottom: 8px; border: 1px solid #ddd; padding: 8px;">
+              <img src="${qrCodeUrl}" alt="QR Code" style="max-width: 160px !important; max-height: 160px !important; margin-bottom: 8px; border: 1px solid #222; padding: 8px; background: #fff;">
             </div>
           </div>
         </div>
@@ -1339,8 +1340,8 @@ QR_DISPLAY = '''
       // Create an ID card as HTML
       const idCardHtml = `
         <div class="id-card" style="width: 400px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background-color: white;">
-          <div class="id-card-header" style="background-color: #0d6efd; color: white; padding: 15px; text-align: center;">
-            <h3>VISITOR ID CARD</h3>
+          <div class="id-card-header" style="background-color: #ff9800; color: #222 !important; padding: 15px; text-align: center;">
+            <h3 style="margin:0; letter-spacing:1px; font-weight:700;">VISITOR ID CARD</h3>
           </div>
           <div class="id-card-body" style="padding: 20px;">
             <div class="visitor-info" style="margin-bottom: 20px;">
@@ -1358,7 +1359,7 @@ QR_DISPLAY = '''
               </div>
             </div>
             <div class="qr-container" style="text-align: center; padding: 10px; border-top: 1px solid #eee;">
-              <img src="${qrCodeUrl}" alt="QR Code" style="max-width: 80px !important; max-height: 80px !important; margin-bottom: 8px; border: 1px solid #ddd; padding: 8px;">
+              <img src="${qrCodeUrl}" alt="QR Code" style="max-width: 160px !important; max-height: 160px !important; margin-bottom: 8px; border: 1px solid #222; padding: 8px; background: #fff;">
             </div>
           </div>
         </div>
@@ -1465,8 +1466,8 @@ QR_DISPLAY = '''
     // Create an ID card as HTML (same as download)
     const idCardHtml = `
       <div class="id-card" style="width: 400px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background-color: white;">
-        <div class="id-card-header" style="background-color: #0d6efd; color: white; padding: 15px; text-align: center;">
-          <h3>VISITOR ID CARD</h3>
+        <div class="id-card-header" style="background-color: #ff9800; color: #222 !important; padding: 15px; text-align: center;">
+          <h3 style="margin:0; letter-spacing:1px; font-weight:700;">VISITOR ID CARD</h3>
         </div>
         <div class="id-card-body" style="padding: 20px;">
           <div class="visitor-info" style="margin-bottom: 20px;">
@@ -1484,7 +1485,7 @@ QR_DISPLAY = '''
             </div>
           </div>
           <div class="qr-container" style="text-align: center; padding: 10px; border-top: 1px solid #eee;">
-            <img src="${qrCodeUrl}" alt="QR Code" style="max-width: 80px !important; max-height: 80px !important; margin-bottom: 8px; border: 1px solid #ddd; padding: 8px;">
+            <img src="${qrCodeUrl}" alt="QR Code" style="max-width: 160px !important; max-height: 160px !important; margin-bottom: 8px; border: 1px solid #222; padding: 8px; background: #fff;">
           </div>
         </div>
       </div>
@@ -1585,8 +1586,8 @@ QR_DISPLAY = '''
       // Create an ID card as HTML
       const idCardHtml = `
         <div class="id-card" style="width: 400px; margin: 0 auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background-color: white;">
-          <div class="id-card-header" style="background-color: #0d6efd; color: white; padding: 15px; text-align: center;">
-            <h3>VISITOR ID CARD</h3>
+          <div class="id-card-header" style="background-color: #ff9800; color: #222 !important; padding: 15px; text-align: center;">
+            <h3 style="margin:0; letter-spacing:1px; font-weight:700;">VISITOR ID CARD</h3>
           </div>
           <div class="id-card-body" style="padding: 20px;">
             <div class="visitor-info" style="margin-bottom: 20px;">
@@ -1604,7 +1605,7 @@ QR_DISPLAY = '''
               </div>
             </div>
             <div class="qr-container" style="text-align: center; padding: 10px; border-top: 1px solid #eee;">
-              <img src="${qrCodeUrl}" alt="QR Code" style="max-width: 80px !important; max-height: 80px !important; margin-bottom: 8px; border: 1px solid #ddd; padding: 8px;">
+              <img src="${qrCodeUrl}" alt="QR Code" style="max-width: 160px !important; max-height: 160px !important; margin-bottom: 8px; border: 1px solid #222; padding: 8px; background: #fff;">
             </div>
           </div>
         </div>

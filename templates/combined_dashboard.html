@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 
-{% block title %}Admin Dashboard{% endblock %}
+{% block title %}{{ _('Admin Dashboard') }}{% endblock %}
 
 {% block css %}
 <!-- DataTables CSS -->
@@ -12,21 +12,21 @@
 
 {% block content %}
 <div class="container mt-4">
-  <h3 class="mb-4">Current Visitors</h3>
+  <h3 class="mb-4">{{ _('Current Visitors') }}</h3>
   <div class="card mb-5">
     <div class="card-body">
       <table id="currentVisitorsTable" class="table table-bordered table-striped">
         <thead class="table-light">
         <tr>
-          <th>Sl No</th>
-          <th>Name</th>
-          <th>Company</th>
-          <th>Phone</th>
-          <th>Email</th>
-          <th>Purpose</th>
-          <th>Whom to Meet</th>
-          <th>Check-In</th>
-          <th>Actions</th>
+          <th>{{ _('Sl No') }}</th>
+          <th>{{ _('Name') }}</th>
+          <th>{{ _('Company') }}</th>
+          <th>{{ _('Phone') }}</th>
+          <th>{{ _('Email') }}</th>
+          <th>{{ _('Purpose') }}</th>
+          <th>{{ _('Whom to Meet') }}</th>
+          <th>{{ _('Check-In') }}</th>
+          <th>{{ _('Actions') }}</th>
         </tr>
         </thead>
         <tbody>
@@ -40,7 +40,7 @@
             <td>{{ v.purpose }}</td>
             <td>{{ v.whom_to_meet }}</td>
             <td>{{ v.checkin_time|datetime('medium') }}</td>
-            <td><a class="btn btn-sm btn-warning" href="/admin/logout_visitor/{{ v.id }}"><i class="fas fa-sign-out-alt me-2"></i>Clock Out</a></td>
+            <td><a class="btn btn-sm btn-warning" href="/admin/logout_visitor/{{ v.id }}"><i class="fas fa-sign-out-alt me-2"></i>{{ _('Clock Out') }}</a></td>
           </tr>
         {% endfor %}
         </tbody>
@@ -48,10 +48,10 @@
     </div>
   </div>
 
-  <h3 class="mb-4">Historical Visitors</h3>
+  <h3 class="mb-4">{{ _('Historical Visitors') }}</h3>
   <div class="mb-3">
     <button id="toggleViewBtn" class="btn btn-outline-primary btn-sm">
-      <i class="fas fa-table me-2"></i>Switch to Card View
+      <i class="fas fa-table me-2"></i>{{ _('Switch to Card View') }}
     </button>
   </div>
   <div class="card">

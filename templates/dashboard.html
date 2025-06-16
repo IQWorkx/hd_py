@@ -59,7 +59,7 @@
           <div class="stats-icon mb-2">
             <i class="fas fa-users"></i>
           </div>
-          <h6 class="card-title text-muted mb-1">Total Visitors</h6>
+          <h6 class="card-title text-muted mb-1">{{ _('Total Visitors') }}</h6>
           <div class="display-6 fw-bold">{{ total_visitors }}</div>
         </div>
       </div>
@@ -70,7 +70,7 @@
           <div class="stats-icon mb-2">
             <i class="fas fa-calendar-day"></i>
           </div>
-          <h6 class="card-title text-muted mb-1">Today's Visitors</h6>
+          <h6 class="card-title text-muted mb-1">{{ _("Today's Visitors") }}</h6>
           <div class="display-6 fw-bold">{{ today_visitors }}</div>
         </div>
       </div>
@@ -81,7 +81,7 @@
           <div class="stats-icon mb-2">
             <i class="fas fa-door-open"></i>
           </div>
-          <h6 class="card-title text-muted mb-1">Current Visitors</h6>
+          <h6 class="card-title text-muted mb-1">{{ _('Current Visitors') }}</h6>
           <div class="display-6 fw-bold">{{ current_visitors }}</div>
         </div>
       </div>
@@ -92,7 +92,7 @@
           <div class="stats-icon mb-2">
             <i class="fas fa-history"></i>
           </div>
-          <h6 class="card-title text-muted mb-1">Historical Visitors</h6>
+          <h6 class="card-title text-muted mb-1">{{ _('Historical Visitors') }}</h6>
           <div class="display-6 fw-bold">{{ historical_visitors }}</div>
         </div>
       </div>
@@ -104,7 +104,7 @@
     <div class="col-md-8">
       <div class="card">
         <div class="card-header bg-white">
-          <h5 class="mb-0">Visitor Trends <span class="ai-badge"><i class="fas fa-robot me-1"></i>AI Enhanced</span></h5>
+          <h5 class="mb-0">{{ _('Visitor Trends') }} <span class="ai-badge"><i class="fas fa-robot me-1"></i>{{ _('AI Enhanced') }}</span></h5>
         </div>
         <div class="card-body">
           <div class="chart-container">
@@ -116,12 +116,12 @@
     <div class="col-md-4">
       <div class="card h-100">
         <div class="card-header bg-white">
-          <h5 class="mb-0">AI Insights <span class="ai-badge"><i class="fas fa-brain me-1"></i>AI</span></h5>
+          <h5 class="mb-0">{{ _('AI Insights') }} <span class="ai-badge"><i class="fas fa-brain me-1"></i>AI</span></h5>
         </div>
         <div class="card-body" id="aiInsights">
           <div class="d-flex justify-content-center align-items-center h-100">
             <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
+              <span class="visually-hidden">{{ _('Loading...') }}</span>
             </div>
           </div>
         </div>
@@ -134,12 +134,12 @@
     <div class="col-md-6">
       <div class="card">
         <div class="card-header bg-white">
-          <h5 class="mb-0">Visitor Predictions <span class="ai-badge"><i class="fas fa-chart-line me-1"></i>AI</span></h5>
+          <h5 class="mb-0">{{ _('Visitor Predictions') }} <span class="ai-badge"><i class="fas fa-chart-line me-1"></i>AI</span></h5>
         </div>
         <div class="card-body" id="visitorPredictions">
           <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
             <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
+              <span class="visually-hidden">{{ _('Loading...') }}</span>
             </div>
           </div>
         </div>
@@ -148,7 +148,7 @@
     <div class="col-md-6">
       <div class="card">
         <div class="card-header bg-white">
-          <h5 class="mb-0">Visitor Patterns <span class="ai-badge"><i class="fas fa-chart-pie me-1"></i>AI</span></h5>
+          <h5 class="mb-0">{{ _('Visitor Patterns') }} <span class="ai-badge"><i class="fas fa-chart-pie me-1"></i>AI</span></h5>
         </div>
         <div class="card-body">
           <div class="chart-container" style="height: 200px;">

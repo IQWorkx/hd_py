@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ get_locale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Visitor Admin Panel{% endblock %}</title>
+    <title>{% block title %}{{ _('Visitor Admin Panel') }}{% endblock %}</title>
     <!-- MDB CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mdb.min.css') }}">
     <!-- Font Awesome -->
@@ -13,16 +13,33 @@
     {% block css %}{% endblock %}
     <style>
         /* Common admin styles */
+        html, body {
+            height: 100%;
+        }
         body {
-            background: #f8f9fa;
-            color: #222;
-            font-family: 'Roboto', Arial, sans-serif;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content {
+            flex: 1 0 auto;
+        }
+        .footer {
+            flex-shrink: 0;
+            width: 100vw;
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            color: #888;
+            z-index: 1001;
+            margin-top: 60px;
         }
         .header-bar {
             width: 100vw;
-            background: #fff;
-            color: #009688;
+            background: {{ HEADER_BG }};
+            color: {{ HEADER_TEXT }};
             border-bottom: 1px solid #e0e0e0;
             display: flex;
             align-items: center;
@@ -182,34 +199,49 @@
             <button id="sidebarToggle" class="btn btn-link text-teal me-2" style="font-size: 1.5rem;">
                 <i class="fas fa-bars"></i>
             </button>
-            {# <img src="https://mdbcdn.b-cdn.net/img/logo/mdb-transaprent-noshadows.png" alt="Logo"> #}
-            <span class="fs-4 fw-bold">Visitor Admin Panel</span>
+            <img src="{{ url_for('static', filename=SITE_LOGO) }}" alt="Logo" style="height:40px; margin-right:10px;">
+            <span class="fs-4 fw-bold">{{ _('Visitor Admin Panel') }}</span>
         </div>
         <div class="d-flex align-items-center">
+            <form method="get" action="" class="me-3">
+                <select name="lang" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="en" {% if get_locale() == 'en' %}selected{% endif %}>{{ _('English') }}</option>
+                    <option value="hi" {% if get_locale() == 'hi' %}selected{% endif %}>{{ _('Hindi') }}</option>
+                    <option value="kn" {% if get_locale() == 'kn' %}selected{% endif %}>{{ _('Kannada') }}</option>
+                    <option value="ar" {% if get_locale() == 'ar' %}selected{% endif %}>{{ _('Arabic') }}</option>
+                </select>
+            </form>
             <div class="d-flex align-items-center me-3">
                 <i class="fas fa-user-circle fa-lg me-2"></i>
                 <span class="text-dark">{{ session.admin_username }}</span>
             </div>
             <a href="/admin/logout" class="btn btn-outline-danger btn-sm">
-                <i class="fas fa-sign-out-alt me-1"></i> Logout
+                <i class="fas fa-sign-out-alt me-1"></i> {{ _('Logout') }}
             </a>
         </div>
     </div>
     <div class="side-nav d-flex flex-column">
         <a class="nav-link {% if active_page == 'dashboard' %}active{% endif %}" href="/admin/dashboard">
-            <i class="fas fa-tachometer-alt me-2"></i> <span>Dashboard</span>
+            <i class="fas fa-tachometer-alt me-2"></i> <span>{{ _('Dashboard') }}</span>
         </a>
         <a class="nav-link {% if active_page == 'current' %}active{% endif %}" href="/admin/current-visitors">
-            <i class="fas fa-users me-2"></i> <span>Current Visitors</span>
+            <i class="fas fa-users me-2"></i> <span>{{ _('Current Visitors') }}</span>
         </a>
         <a class="nav-link {% if active_page == 'history' %}active{% endif %}" href="/admin/historical-visitors">
-            <i class="fas fa-history me-2"></i> <span>Historical Visitors</span>
+            <i class="fas fa-history me-2"></i> <span>{{ _('Historical Visitors') }}</span>
         </a>
     </div>
     <div class="main-content">
         {% block content %}
         {% endblock %}
     </div>
+    {% block footer %}
+    <footer class="footer py-3 text-center">
+        <div class="container">
+            <span>&copy; {{ _('2025 IQHired Visitor Management System') }}</span>
+        </div>
+    </footer>
+    {% endblock %}
     <!-- MDB JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.2.0/mdb.min.js"></script>
 

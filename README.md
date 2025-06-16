@@ -51,3 +51,24 @@ This is a Python Flask application for managing company visitors with integrated
 - To enable the OpenAI-powered chatbot, uncomment the `openai.api_key` line in `ai_helpers.py` and add your API key.
 - The AI features use a combination of rule-based approaches and machine learning techniques. In a production environment, you may want to fine-tune these models with your specific data.
 - The visitor analytics and predictions become more accurate as more visitor data is collected.
+
+## Internationalization (i18n)
+This application supports multiple languages: English, Hindi, Kannada, and Arabic. All user-facing text is translatable.
+
+### Updating Translations
+1. After editing any `.po` translation files in `translations/<lang>/LC_MESSAGES/messages.po`, compile them to `.mo` files:
+   ```sh
+   pybabel compile -d translations
+   ```
+   This makes your translations available to the app.
+
+2. To extract new/changed strings and update all translation files:
+   ```sh
+   pybabel extract -F babel.cfg -o translations/messages.pot .
+   pybabel update -i translations/messages.pot -d translations -l en -l hi -l kn -l ar
+   ```
+
+3. Edit the `.po` files for each language and repeat the compile step above.
+
+### Language Switcher
+- A language switcher is available in both the admin and visitor headers. Users can select their preferred language from the dropdown.

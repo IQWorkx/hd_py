@@ -1,0 +1,308 @@
+# Hindi translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-06-16 13:46+0530\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: hi\n"
+"Language-Team: hi <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: app.py:89 app.py:106 app.py:145 app.py:232 app.py:249 app.py:265 app.py:338
+#: app.py:367
+#, python-format
+msgid "Database error: %(error)s"
+msgstr ""
+
+#: app.py:136 app.py:321 app.py:357
+msgid "Invalid Temp ID."
+msgstr ""
+
+#: app.py:141
+#, python-format
+msgid "Status changed to %(status)s."
+msgstr ""
+
+#: app.py:158
+msgid "Invalid credentials"
+msgstr ""
+
+#: app.py:206
+msgid ""
+"Migration successful: visitors and users tables created/updated, "
+"superadmin added."
+msgstr ""
+
+#: app.py:208
+#, python-format
+msgid "Migration failed: %(error)s"
+msgstr ""
+
+#: app.py:290
+#, python-format
+msgid "Export failed: %(error)s"
+msgstr ""
+
+#: app.py:304
+msgid "Visitor manually clocked out."
+msgstr ""
+
+#: app.py:306
+#, python-format
+msgid "Manual clock out failed: %(error)s"
+msgstr ""
+
+#: app.py:325
+msgid "Visitor already checked out."
+msgstr ""
+
+#: app.py:331
+msgid "Checkout successful."
+msgstr ""
+
+#: app.py:359
+msgid "Visitor already checked in."
+msgstr ""
+
+#: app.py:363
+msgid "Check-in successful."
+msgstr ""
+
+#: templates/base_admin.html:6 templates/base_admin.html:185
+msgid "Visitor Admin Panel"
+msgstr "आगंतुक व्यवस्थापक पैनल"
+
+#: templates/base_admin.html:190 templates/visitor_header.html:9
+msgid "English"
+msgstr ""
+
+#: templates/base_admin.html:191 templates/visitor_header.html:10
+msgid "Hindi"
+msgstr ""
+
+#: templates/base_admin.html:192 templates/visitor_header.html:11
+msgid "Kannada"
+msgstr ""
+
+#: templates/base_admin.html:193 templates/visitor_header.html:12
+msgid "Arabic"
+msgstr ""
+
+#: templates/base_admin.html:201
+msgid "Logout"
+msgstr ""
+
+#: templates/base_admin.html:207
+msgid "Dashboard"
+msgstr ""
+
+#: templates/base_admin.html:210 templates/combined_dashboard.html:15
+#: templates/current_visitors.html:3 templates/dashboard.html:84
+msgid "Current Visitors"
+msgstr ""
+
+#: templates/base_admin.html:213 templates/combined_dashboard.html:51
+#: templates/dashboard.html:95
+msgid "Historical Visitors"
+msgstr ""
+
+#: templates/combined_dashboard.html:3
+msgid "Admin Dashboard"
+msgstr ""
+
+#: templates/combined_dashboard.html:21 templates/current_visitors.html:20
+#: templates/historical_visitors.html:26
+msgid "Sl No"
+msgstr ""
+
+#: templates/combined_dashboard.html:22 templates/current_visitors.html:21
+#: templates/historical_visitors.html:27
+msgid "Name"
+msgstr ""
+
+#: templates/combined_dashboard.html:23 templates/current_visitors.html:22
+#: templates/historical_visitors.html:28
+msgid "Company"
+msgstr ""
+
+#: templates/combined_dashboard.html:24 templates/current_visitors.html:23
+#: templates/historical_visitors.html:29
+msgid "Phone"
+msgstr ""
+
+#: templates/combined_dashboard.html:25 templates/current_visitors.html:24
+#: templates/historical_visitors.html:30
+msgid "Email"
+msgstr ""
+
+#: templates/combined_dashboard.html:26 templates/current_visitors.html:25
+#: templates/historical_visitors.html:31
+msgid "Purpose"
+msgstr ""
+
+#: templates/combined_dashboard.html:27 templates/current_visitors.html:26
+#: templates/historical_visitors.html:32
+msgid "Whom to Meet"
+msgstr ""
+
+#: templates/combined_dashboard.html:28 templates/current_visitors.html:27
+#: templates/historical_visitors.html:34
+msgid "Check-In"
+msgstr ""
+
+#: templates/combined_dashboard.html:29 templates/current_visitors.html:28
+msgid "Actions"
+msgstr ""
+
+#: templates/combined_dashboard.html:43 templates/current_visitors.html:42
+msgid "Clock Out"
+msgstr ""
+
+#: templates/combined_dashboard.html:54 templates/historical_visitors.html:17
+#: templates/historical_visitors.html:134
+msgid "Switch to Card View"
+msgstr ""
+
+#: templates/current_visitors.html:71 templates/historical_visitors.html:116
+msgid "Download"
+msgstr ""
+
+#: templates/dashboard.html:62
+msgid "Total Visitors"
+msgstr ""
+
+#: templates/dashboard.html:73
+msgid "Today's Visitors"
+msgstr ""
+
+#: templates/dashboard.html:107
+msgid "Visitor Trends"
+msgstr ""
+
+#: templates/dashboard.html:107
+msgid "AI Enhanced"
+msgstr ""
+
+#: templates/dashboard.html:119
+msgid "AI Insights"
+msgstr ""
+
+#: templates/dashboard.html:124 templates/dashboard.html:142
+msgid "Loading..."
+msgstr ""
+
+#: templates/dashboard.html:137
+msgid "Visitor Predictions"
+msgstr ""
+
+#: templates/dashboard.html:151
+#, fuzzy
+msgid "Visitor Patterns"
+msgstr "आगंतुक व्यवस्थापक पैनल"
+
+#: templates/historical_visitors.html:3 templates/historical_visitors.html:114
+msgid "Visitor History"
+msgstr ""
+
+#: templates/historical_visitors.html:33
+msgid "Temp ID"
+msgstr ""
+
+#: templates/historical_visitors.html:35
+msgid "Check-Out"
+msgstr ""
+
+#: templates/historical_visitors.html:58
+msgid "Search visitor history..."
+msgstr ""
+
+#: templates/historical_visitors.html:68
+msgid "Email:"
+msgstr ""
+
+#: templates/historical_visitors.html:69
+msgid "Phone:"
+msgstr ""
+
+#: templates/historical_visitors.html:70
+msgid "Purpose:"
+msgstr ""
+
+#: templates/historical_visitors.html:71
+msgid "Whom to Meet:"
+msgstr ""
+
+#: templates/historical_visitors.html:72
+msgid "Temp ID:"
+msgstr ""
+
+#: templates/historical_visitors.html:73
+msgid "Status:"
+msgstr ""
+
+#: templates/historical_visitors.html:74
+msgid "Check-In:"
+msgstr ""
+
+#: templates/historical_visitors.html:75
+msgid "Check-Out:"
+msgstr ""
+
+#: templates/historical_visitors.html:79
+msgid "Visitor"
+msgstr ""
+
+#: templates/historical_visitors.html:130
+msgid "Switch to Table View"
+msgstr ""
+
+#: templates/login.html:6 templates/login.html:49
+msgid "Admin Login"
+msgstr ""
+
+#: templates/login.html:52
+msgid "Username:"
+msgstr ""
+
+#: templates/login.html:56
+msgid "Password:"
+msgstr ""
+
+#: templates/login.html:60
+msgid "Login"
+msgstr ""
+
+#: templates/visitor_header.html:4
+msgid "Company Logo"
+msgstr ""
+
+#: templates/visitor_header.html:5
+msgid "Welcome to IQHired"
+msgstr "IQHired में आपका स्वागत है"
+
+#: templates/visitor_header.html:28
+msgid "Welcome to IQHired. Please proceed with your registration."
+msgstr ""
+
+#~ msgid "English"
+#~ msgstr "अंग्रेज़ी"
+
+#~ msgid "Arabic"
+#~ msgstr "अरबी"
+
+#~ msgid "Hindi"
+#~ msgstr "हिंदी"
+
+#~ msgid "Kannada"
+#~ msgstr "कन्नड़"
+

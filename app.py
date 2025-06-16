@@ -3,55 +3,48 @@ import uuid
 import qrcode
 from io import BytesIO
 from datetime import datetime
-from flask import Flask, request, redirect, url_for, send_file, flash, session, jsonify
+from flask import Flask, request, redirect, url_for, send_file, flash, session, jsonify, render_template_string
 import mysql.connector
 import openpyxl
 from theme import themed
 from visitor_screens import render_visitor_form, render_qr_display, render_checkout_form
 from check_screens import render_checkin_form
-from admin_screens import render_admin_login_form, render_admin_dashboard, render_current_visitors, render_historical_visitors, render_admin_stats_dashboard
+from admin_screens import render_admin_login_form, render_admin_dashboard, render_current_visitors, render_historical_visitors, render_admin_stats_dashboard, render_theme_config_form
 from ai_helpers import generate_purpose_suggestions, get_chatbot_response, analyze_visitor_patterns, predict_visitor_traffic
+from api import api as api_blueprint
+from config import DevelopmentConfig, ProductionConfig
+from flask_babel import Babel, _
 
-# Define login form
-LOGIN_FORM = '''
-<div class="container-fluid min-vh-100 d-flex flex-column py-4">
-  <div class="row flex-grow-1 justify-content-center">
-    <div class="col-md-6">
-      <div class="card h-100 shadow-sm">
-        <div class="card-header bg-primary text-white p-4">
-          <h2 class="mb-0">Visitor Login</h2>
-        </div>
-        <div class="card-body p-4">
-          <form method="post" action="/login">
-            <div class="mb-4">
-              <label class="form-label fw-medium">Enter Your Temporary ID:</label>
-              <input class="form-control form-control-lg" type="text" name="temp_id" required>
-            </div>
-            <div class="d-grid gap-2">
-              <button class="btn btn-primary btn-lg btn-raised" type="submit">
-                <i class="fas fa-sign-in-alt me-2"></i>Login
-              </button>
-              <a class="btn btn-outline-secondary btn-lg btn-raised" href="/">
-                <i class="fas fa-arrow-left me-2"></i>Back to Registration
-              </a>
-            </div>
-          </form>
-          {% with messages = get_flashed_messages() %}
-            {% if messages %}
-              <div class="alert alert-info mt-3">
-                <ul class="mb-0">{% for msg in messages %}<li>{{ msg }}</li>{% endfor %}</ul>
-              </div>
-            {% endif %}
-          {% endwith %}
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-'''
+# Choose config based on FLASK_ENV
+env = os.environ.get('FLASK_ENV', 'development')
+if env == 'production':
+    app_config = ProductionConfig
+else:
+    app_config = DevelopmentConfig
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Change this in production
+app.config.from_object(app_config)
+
+# Initialize Flask-Babel
+babel = Babel(app)
+
+# Supported languages
+LANGUAGES = {
+    'en': 'English',
+    'hi': 'Hindi',
+    'kn': 'Kannada',
+    'ar': 'Arabic'
+}
+
+@babel.localeselector
+def get_locale():
+    return request.args.get('lang') or request.accept_languages.best_match(LANGUAGES.keys())
+
+# Make get_locale available in all templates
+app.jinja_env.globals['get_locale'] = get_locale
+
+# Register API blueprint
+app.register_blueprint(api_blueprint)
 
 # MySQL configuration (update with your credentials)
 DB_CONFIG = {
@@ -93,7 +86,7 @@ def register():
             cursor.close()
             conn.close()
         except Exception as e:
-            flash(f"Database error: {e}")
+            flash(_('Database error: %(error)s', error=e))
             return redirect(url_for('index'))
         return render_qr_display(name, company, temp_id)
     else:  # GET request
@@ -110,7 +103,7 @@ def register():
                     name, company = visitor
                     return render_qr_display(name, company, temp_id)
             except Exception as e:
-                flash(f"Database error: {e}")
+                flash(_('Database error: %(error)s', error=e))
         return redirect(url_for('index'))
 
 @app.route('/qr_code')
@@ -140,16 +133,16 @@ def login():
         cursor.execute("SELECT status FROM visitors WHERE temp_id=%s", (temp_id,))
         row = cursor.fetchone()
         if not row:
-            flash("Invalid Temp ID.")
+            flash(_('Invalid Temp ID.'))
         else:
             new_status = 'IN' if row[0] == 'OUT' else 'OUT'
             cursor.execute("UPDATE visitors SET status=%s WHERE temp_id=%s", (new_status, temp_id))
             conn.commit()
-            flash(f"Status changed to {new_status}.")
+            flash(_('Status changed to %(status)s.', status=new_status))
         cursor.close()
         conn.close()
     except Exception as e:
-        flash(f"Database error: {e}")
+        flash(_('Database error: %(error)s', error=e))
     return redirect(url_for('login'))
 
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -162,7 +155,7 @@ def admin_login():
         session['admin_logged_in'] = True
         session['admin_username'] = username
         return redirect(url_for('admin_dashboard'))
-    flash('Invalid credentials')
+    flash(_('Invalid credentials'))
     return redirect(url_for('admin_login'))
 
 @app.route('/admin/logout')
@@ -210,9 +203,9 @@ def migrate():
         conn.commit()
         cursor.close()
         conn.close()
-        return 'Migration successful: visitors and users tables created/updated, superadmin added.'
+        return _('Migration successful: visitors and users tables created/updated, superadmin added.')
     except Exception as e:
-        return f'Migration failed: {e}'
+        return _('Migration failed: %(error)s', error=e)
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
@@ -236,7 +229,7 @@ def admin_dashboard():
         cursor.close()
         conn.close()
     except Exception as e:
-        flash(f"Database error: {e}")
+        flash(_('Database error: %(error)s', error=e))
         total_visitors = today_visitors = current_visitors = historical_visitors = 0
         chart_data = []
     return render_admin_stats_dashboard(total_visitors, today_visitors, current_visitors, historical_visitors, chart_data)
@@ -253,7 +246,7 @@ def admin_current_visitors():
         cursor.close()
         conn.close()
     except Exception as e:
-        flash(f"Database error: {e}")
+        flash(_('Database error: %(error)s', error=e))
         current_visitors = []
     return render_current_visitors(current_visitors)
 
@@ -269,7 +262,7 @@ def admin_historical_visitors():
         cursor.close()
         conn.close()
     except Exception as e:
-        flash(f"Database error: {e}")
+        flash(_('Database error: %(error)s', error=e))
         historical_visitors = []
     return render_historical_visitors(historical_visitors)
 
@@ -294,7 +287,7 @@ def admin_export():
         output.seek(0)
         return send_file(output, as_attachment=True, download_name='visitors.xlsx', mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     except Exception as e:
-        flash(f"Export failed: {e}")
+        flash(_('Export failed: %(error)s', error=e))
         return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/logout_visitor/<int:visitor_id>')
@@ -308,9 +301,9 @@ def admin_logout_visitor(visitor_id):
         conn.commit()
         cursor.close()
         conn.close()
-        flash('Visitor manually clocked out.')
+        flash(_('Visitor manually clocked out.'))
     except Exception as e:
-        flash(f"Manual clock out failed: {e}")
+        flash(_('Manual clock out failed: %(error)s', error=e))
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/checkout', methods=['GET', 'POST'])
@@ -325,24 +318,24 @@ def checkout():
         cursor.execute("SELECT status FROM visitors WHERE temp_id=%s", (temp_id,))
         row = cursor.fetchone()
         if not row:
-            msg = "Invalid Temp ID."
+            msg = _('Invalid Temp ID.')
             flash(msg)
             result["message"] = msg
         elif row[0] == 'OUT':
-            msg = "Visitor already checked out."
+            msg = _('Visitor already checked out.')
             flash(msg)
             result["message"] = msg
         else:
             cursor.execute("UPDATE visitors SET status='OUT' WHERE temp_id=%s", (temp_id,))
             conn.commit()
-            msg = "Checkout successful."
+            msg = _('Checkout successful.')
             flash(msg)
             result["success"] = True
             result["message"] = msg
         cursor.close()
         conn.close()
     except Exception as e:
-        msg = f"Database error: {e}"
+        msg = _('Database error: %(error)s', error=e)
         flash(msg)
         result["message"] = msg
     # If AJAX/fetch, return JSON
@@ -361,17 +354,17 @@ def checkin():
         cursor.execute("SELECT status FROM visitors WHERE temp_id=%s", (temp_id,))
         row = cursor.fetchone()
         if not row:
-            flash("Invalid Temp ID.")
+            flash(_('Invalid Temp ID.'))
         elif row[0] == 'IN':
-            flash("Visitor already checked in.")
+            flash(_('Visitor already checked in.'))
         else:
             cursor.execute("UPDATE visitors SET status='IN', checkin_time=NOW(), checkout_time=NULL WHERE temp_id=%s", (temp_id,))
             conn.commit()
-            flash("Check-in successful.")
+            flash(_('Check-in successful.'))
         cursor.close()
         conn.close()
     except Exception as e:
-        flash(f"Database error: {e}")
+        flash(_('Database error: %(error)s', error=e))
     return redirect(url_for('checkin'))
 
 # Register a Jinja2 filter for datetime formatting
@@ -451,6 +444,120 @@ def api_visitor_predictions():
         return jsonify(predictions)
     except Exception as e:
         return jsonify({'error': str(e)})
+
+# --- API ENDPOINTS FOR ANDROID APP ---
+from flask import request, jsonify
+
+@app.route('/api/register', methods=['POST'])
+def api_register():
+    data = request.json
+    required = ['name', 'email', 'phone', 'company', 'purpose', 'whom_to_meet']
+    if not all(k in data for k in required):
+        return jsonify({'status': 'error', 'message': 'Missing fields'}), 400
+    temp_id = str(uuid.uuid4())[:8]
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO visitors (name, email, phone, company, purpose, whom_to_meet, temp_id, status, checkin_time)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
+        """, (data['name'], data['email'], data['phone'], data['company'], data['purpose'], data['whom_to_meet'], temp_id, 'IN'))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({'status': 'success', 'temp_id': temp_id})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/checkin', methods=['POST'])
+def api_checkin():
+    data = request.json
+    temp_id = data.get('temp_id')
+    if not temp_id:
+        return jsonify({'status': 'error', 'message': 'Missing temp_id'}), 400
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT status FROM visitors WHERE temp_id=%s", (temp_id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'status': 'error', 'message': 'Invalid Temp ID'}), 404
+        elif row[0] == 'IN':
+            return jsonify({'status': 'error', 'message': 'Already checked in'}), 400
+        else:
+            cursor.execute("UPDATE visitors SET status='IN', checkin_time=NOW(), checkout_time=NULL WHERE temp_id=%s", (temp_id,))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            return jsonify({'status': 'success', 'message': 'Check-in successful'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/checkout', methods=['POST'])
+def api_checkout():
+    data = request.json
+    temp_id = data.get('temp_id')
+    if not temp_id:
+        return jsonify({'status': 'error', 'message': 'Missing temp_id'}), 400
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT status FROM visitors WHERE temp_id=%s", (temp_id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'status': 'error', 'message': 'Invalid Temp ID'}), 404
+        elif row[0] == 'OUT':
+            return jsonify({'status': 'error', 'message': 'Already checked out'}), 400
+        else:
+            cursor.execute("UPDATE visitors SET status='OUT', checkout_time=NOW() WHERE temp_id=%s", (temp_id,))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            return jsonify({'status': 'success', 'message': 'Checkout successful'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+@app.route('/api/visitors', methods=['GET'])
+def api_visitors():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT id, name, email, phone, company, purpose, whom_to_meet, temp_id, status, checkin_time, checkout_time FROM visitors ORDER BY created_at DESC")
+        visitors = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify({'status': 'success', 'visitors': visitors})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+# --- END API ENDPOINTS ---
+
+@app.route('/admin/theme', methods=['GET', 'POST'])
+def admin_theme():
+    if not session.get('admin_username'):
+        return redirect(url_for('admin_login'))
+    if request.method == 'POST':
+        # Handle logo upload
+        logo_file = request.files.get('siteLogo')
+        if logo_file and logo_file.filename:
+            logo_path = os.path.join('static', logo_file.filename)
+            logo_file.save(logo_path)
+            app.config['SITE_LOGO'] = logo_file.filename
+        # Handle theme color
+        theme_color = request.form.get('themeColor')
+        if theme_color:
+            app.config['THEME_COLOR'] = theme_color
+            app.config['HEADER_TEXT'] = theme_color
+        # Update globals
+        app.jinja_env.globals['SITE_LOGO'] = app.config['SITE_LOGO']
+        app.jinja_env.globals['THEME_COLOR'] = app.config['THEME_COLOR']
+        app.jinja_env.globals['HEADER_TEXT'] = app.config['HEADER_TEXT']
+    return render_template_string(render_theme_config_form(app.config['SITE_LOGO'], app.config['THEME_COLOR']))
+
+# Make theme and logo config available in templates
+app.jinja_env.globals['SITE_LOGO'] = app.config.get('SITE_LOGO', 'logo.png')
+app.jinja_env.globals['THEME_COLOR'] = app.config.get('THEME_COLOR', '#009688')
+app.jinja_env.globals['HEADER_BG'] = app.config.get('HEADER_BG', '#fff')
+app.jinja_env.globals['HEADER_TEXT'] = app.config.get('HEADER_TEXT', '#009688')
 
 if __name__ == '__main__':
     app.run(debug=True,  port=6100)

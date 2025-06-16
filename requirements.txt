@@ -1,5 +1,7 @@
-flask
-markupsafe
+Flask==2.3.3
+Flask-Babel==2.0.0
+Babel==2.17.0
+MarkupSafe
 mysql-connector-python
 qrcode
 pillow

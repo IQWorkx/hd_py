@@ -281,3 +281,19 @@ def render_admin_dashboard(current_visitors, historical_visitors):
         active_page='dashboard',
         current_visitors=current_visitors,
         historical_visitors=historical_visitors)
+
+def render_theme_config_form(current_logo, current_theme_color):
+    return '''
+    <form method="post" enctype="multipart/form-data" class="mb-4" style="max-width: 400px;">
+        <div class="mb-3">
+            <label for="siteLogo" class="form-label">Site Logo</label>
+            <input type="file" class="form-control" id="siteLogo" name="siteLogo" accept="image/*">
+            <div class="form-text">Current: <img src="/static/{}" alt="Logo" style="height:32px;vertical-align:middle;"></div>
+        </div>
+        <div class="mb-3">
+            <label for="themeColor" class="form-label">Theme Color</label>
+            <input type="color" class="form-control form-control-color" id="themeColor" name="themeColor" value="{}" title="Choose your color">
+        </div>
+        <button type="submit" class="btn btn-primary">Update Theme</button>
+    </form>
+    '''.format(current_logo, current_theme_color)

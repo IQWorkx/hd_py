@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login</title>
+    <title>{{ _('Admin Login') }}</title>
     <!-- MDB CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mdb.min.css') }}">
     <!-- Font Awesome -->
@@ -46,18 +46,18 @@
             <div class="col-md-6 col-lg-5">
                 <div class="card p-4 mt-5">
                     <div class="card-body">
-                        <h2 class="text-center mb-4">Admin Login</h2>
+                        <h2 class="text-center mb-4">{{ _('Admin Login') }}</h2>
                         <form method="post" action="/admin/login">
                             <div class="mb-3">
-                                <label class="form-label">Username:</label>
+                                <label class="form-label">{{ _('Username:') }}</label>
                                 <input class="form-control" type="text" name="username" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Password:</label>
+                                <label class="form-label">{{ _('Password:') }}</label>
                                 <input class="form-control" type="password" name="password" required>
                             </div>
                             <div class="d-grid">
-                                <button class="btn btn-primary" type="submit">Login</button>
+                                <button class="btn btn-primary" type="submit">{{ _('Login') }}</button>
                             </div>
                         </form>
                         {% with messages = get_flashed_messages() %}

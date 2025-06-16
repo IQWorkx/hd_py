@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 
-{% block title %}Visitor History{% endblock %}
+{% block title %}{{ _('Visitor History') }}{% endblock %}
 
 {% block css %}
 <!-- DataTables CSS -->
@@ -14,7 +14,7 @@
 <div class="container mt-4">
   <div class="mb-3">
     <button id="toggleViewBtn" class="btn btn-outline-primary btn-sm">
-      <i class="fas fa-table me-2"></i>Switch to Card View
+      <i class="fas fa-table me-2"></i>{{ _('Switch to Card View') }}
     </button>
   </div>
   <div class="card">
@@ -23,16 +23,16 @@
         <table id="visitorHistoryTable" class="table table-bordered table-striped">
           <thead class="table-light">
           <tr>
-            <th>Sl No</th>
-            <th>Name</th>
-            <th>Company</th>
-            <th>Phone</th>
-            <th>Email</th>
-            <th>Purpose</th>
-            <th>Whom to Meet</th>
-            <th>Temp ID</th>
-            <th>Check-In</th>
-            <th>Check-Out</th>
+            <th>{{ _('Sl No') }}</th>
+            <th>{{ _('Name') }}</th>
+            <th>{{ _('Company') }}</th>
+            <th>{{ _('Phone') }}</th>
+            <th>{{ _('Email') }}</th>
+            <th>{{ _('Purpose') }}</th>
+            <th>{{ _('Whom to Meet') }}</th>
+            <th>{{ _('Temp ID') }}</th>
+            <th>{{ _('Check-In') }}</th>
+            <th>{{ _('Check-Out') }}</th>
           </tr>
           </thead>
           <tbody>
@@ -55,7 +55,7 @@
       </div>
       <div id="visitorHistoryCardView" style="display:none;">
         <div class="mb-3">
-          <input type="text" id="cardSearchInput" class="form-control" placeholder="Search visitor history...">
+          <input type="text" id="cardSearchInput" class="form-control" placeholder="{{ _('Search visitor history...') }}">
         </div>
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="cardContainer">
           {% for v in historical_visitors %}
@@ -65,18 +65,18 @@
                 <h5 class="card-title">{{ v.name }}</h5>
                 <h6 class="card-subtitle mb-2 text-muted">{{ v.company }}</h6>
                 <ul class="list-group list-group-flush mb-2">
-                  <li class="list-group-item"><strong>Email:</strong> {{ v.email }}</li>
-                  <li class="list-group-item"><strong>Phone:</strong> {{ v.phone }}</li>
-                  <li class="list-group-item"><strong>Purpose:</strong> {{ v.purpose }}</li>
-                  <li class="list-group-item"><strong>Whom to Meet:</strong> {{ v.whom_to_meet }}</li>
-                  <li class="list-group-item"><strong>Temp ID:</strong> {{ v.temp_id }}</li>
-                  <li class="list-group-item"><strong>Status:</strong> {{ v.status }}</li>
-                  <li class="list-group-item"><strong>Check-In:</strong> {{ v.checkin_time }}</li>
-                  <li class="list-group-item"><strong>Check-Out:</strong> {{ v.checkout_time }}</li>
+                  <li class="list-group-item"><strong>{{ _('Email:') }}</strong> {{ v.email }}</li>
+                  <li class="list-group-item"><strong>{{ _('Phone:') }}</strong> {{ v.phone }}</li>
+                  <li class="list-group-item"><strong>{{ _('Purpose:') }}</strong> {{ v.purpose }}</li>
+                  <li class="list-group-item"><strong>{{ _('Whom to Meet:') }}</strong> {{ v.whom_to_meet }}</li>
+                  <li class="list-group-item"><strong>{{ _('Temp ID:') }}</strong> {{ v.temp_id }}</li>
+                  <li class="list-group-item"><strong>{{ _('Status:') }}</strong> {{ v.status }}</li>
+                  <li class="list-group-item"><strong>{{ _('Check-In:') }}</strong> {{ v.checkin_time }}</li>
+                  <li class="list-group-item"><strong>{{ _('Check-Out:') }}</strong> {{ v.checkout_time }}</li>
                 </ul>
               </div>
               <div class="card-footer text-end">
-                <span class="badge bg-primary">Visitor</span>
+                <span class="badge bg-primary">{{ _('Visitor') }}</span>
               </div>
             </div>
           </div>
@@ -111,9 +111,9 @@
       "buttons": [
         {
           "extend": "excelHtml5",
-          "title": "Visitor History",
+          "title": "{{ _('Visitor History') }}",
           "filename": "historical_visitors",
-          "text": "<i class=\"fas fa-file-excel me-2\"></i>Download",
+          "text": "<i class=\"fas fa-file-excel me-2\"></i>{{ _('Download') }}",
           "className": "btn btn-sm btn-primary"
         }
       ]
@@ -127,11 +127,11 @@
       if ($("#visitorHistoryTableView").is(":visible")) {
         $("#visitorHistoryTableView").hide();
         $("#visitorHistoryCardView").show();
-        $(this).html("<i class=\"fas fa-table me-2\"></i>Switch to Table View");
+        $(this).html("<i class=\"fas fa-table me-2\"></i>{{ _('Switch to Table View') }}");
       } else {
         $("#visitorHistoryCardView").hide();
         $("#visitorHistoryTableView").show();
-        $(this).html("<i class=\"fas fa-grip-horizontal me-2\"></i>Switch to Card View");
+        $(this).html("<i class=\"fas fa-grip-horizontal me-2\"></i>{{ _('Switch to Card View') }}");
       }
     });
   });
