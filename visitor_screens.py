@@ -153,7 +153,7 @@ VISITOR_FORM = '''
     display: block !important;
   }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script src="{{ url_for('static', filename='js/all.min.js') }}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // Purpose suggestions based on company
@@ -381,9 +381,9 @@ QR_DISPLAY = '''
     </div>
   </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="{{ url_for('static', filename='js/all.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/html2canvas.min.js') }}"></script>
 <script>
   // Ensure buttons are properly initialized
   document.addEventListener('DOMContentLoaded', function() {
@@ -1266,9 +1266,9 @@ QR_DISPLAY = '''
     </div>
   </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="{{ url_for('static', filename='js/all.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/html2canvas.min.js') }}"></script>
 <script>
   // Ensure buttons are properly initialized
   document.addEventListener('DOMContentLoaded', function() {

@@ -141,8 +141,8 @@ CHECKOUT_FORM = '''
   </div>
 </div>
 <!-- Load html5-qrcode from local static directory -->
-<script src="/static/js/html5-qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script src="{{ url_for('static', filename='js/html5-qrcode.min.js') }}"></script>
+<script src="{{ url_for('static', filename='fontawesome/js/all.min.js') }}"></script>
 <audio id="thankYouAudio" src="/static/audio/thank_you_for_visiting.mp3" preload="auto"></audio>
 <script>
 document.addEventListener('DOMContentLoaded', function() {

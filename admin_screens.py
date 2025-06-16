@@ -203,13 +203,13 @@ def render_admin_header(page_id="Dashboard", page_title=None):
 
     return f'''
     <!-- Material Design Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.2.0/mdb.min.css" />
+    <link rel="stylesheet" href="{{{{ url_for('static', filename='css/mdb.min.css') }}}}" />
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="{{{{ url_for('static', filename='js/jquery-3.7.0.min.js') }}}}"></script>
     <!-- MDB -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.2.0/mdb.min.js"></script>
+    <script src="{{{{ url_for('static', filename='js/mdb.min.js') }}}}"></script>
 
     {ADMIN_CSS}
 
