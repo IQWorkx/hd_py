@@ -1,6 +1,7 @@
 import os
 import uuid
 import qrcode
+import base64
 from io import BytesIO
 from datetime import datetime
 from flask import Flask, request, redirect, url_for, send_file, flash, session, jsonify, render_template_string
@@ -48,11 +49,11 @@ app.register_blueprint(api_blueprint)
 
 # MySQL configuration (update with your credentials)
 DB_CONFIG = {
-    'user': 'ashams001',
-    'password': 'iqHired@123',
+    'user': 'root',
+    'password': '',
     'host': '127.0.0.1',
-    'database': 'hd',
-    'port': 8889,
+    'database': 'visitors',
+    'port': 3306,
 }
 
 ADMIN_USERNAME = 'admin'
@@ -74,34 +75,61 @@ def register():
         company = request.form['company']
         purpose = request.form['purpose']
         whom_to_meet = request.form['whom_to_meet']
+        photo_data = request.form.get('photo_data')
         temp_id = str(uuid.uuid4())[:8]
+        
+        # Handle photo upload
+        photo_filename = None
+        if photo_data:
+            try:
+                # Create directory if it doesn't exist
+                photo_dir = os.path.join(app.static_folder, 'images', 'visitor_photos')
+                os.makedirs(photo_dir, exist_ok=True)
+                
+                # Generate unique filename
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                photo_filename = f"visitor_{temp_id}_{timestamp}.png"
+                photo_path = os.path.join(photo_dir, photo_filename)
+                
+                # Save the base64 image data to file
+                header, encoded = photo_data.split(",", 1)
+                binary_data = base64.b64decode(encoded)
+                with open(photo_path, "wb") as f:
+                    f.write(binary_data)
+                    
+            except Exception as e:
+                app.logger.error(f"Error saving visitor photo: {e}")
+                flash(_('Error saving visitor photo. Please try again.'))
+                return redirect(url_for('index'))
+
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO visitors (name, email, phone, company, purpose, whom_to_meet, temp_id, status, checkin_time)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW())
-            """, (name, email, phone, company, purpose, whom_to_meet, temp_id, 'IN'))
+                INSERT INTO visitors (name, email, phone, company, purpose, whom_to_meet, temp_id, status, checkin_time, visitor_photo)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), %s)
+            """, (name, email, phone, company, purpose, whom_to_meet, temp_id, 'IN', photo_filename))
             conn.commit()
             cursor.close()
             conn.close()
         except Exception as e:
             flash(_('Database error: %(error)s', error=e))
             return redirect(url_for('index'))
-        return render_qr_display(name, company, temp_id)
+        
+        return render_qr_display(name, company, temp_id, photo_filename)
     else:  # GET request
         temp_id = request.args.get('temp_id')
         if temp_id:
             try:
                 conn = get_db_connection()
                 cursor = conn.cursor()
-                cursor.execute("SELECT name, company FROM visitors WHERE temp_id=%s", (temp_id,))
+                cursor.execute("SELECT name, company, visitor_photo FROM visitors WHERE temp_id=%s", (temp_id,))
                 visitor = cursor.fetchone()
                 cursor.close()
                 conn.close()
                 if visitor:
-                    name, company = visitor
-                    return render_qr_display(name, company, temp_id)
+                    name, company, photo_filename = visitor
+                    return render_qr_display(name, company, temp_id, photo_filename)
             except Exception as e:
                 flash(_('Database error: %(error)s', error=e))
         return redirect(url_for('index'))
@@ -179,6 +207,7 @@ def migrate():
         status ENUM('IN', 'OUT') DEFAULT 'OUT',
         checkin_time DATETIME,
         checkout_time DATETIME,
+        visitor_photo VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
     '''
@@ -241,7 +270,7 @@ def admin_current_visitors():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM visitors WHERE status != 'OUT' ORDER BY checkin_time DESC")
+        cursor.execute("SELECT *, CONCAT('/static/images/visitor_photos/', visitor_photo) as photo_url FROM visitors WHERE status != 'OUT' ORDER BY checkin_time DESC")
         current_visitors = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -257,7 +286,7 @@ def admin_historical_visitors():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM visitors WHERE status = 'OUT' AND checkin_time IS NOT NULL AND checkout_time IS NOT NULL ORDER BY checkout_time DESC")
+        cursor.execute("SELECT *, CONCAT('/static/images/visitor_photos/', visitor_photo) as photo_url FROM visitors WHERE status = 'OUT' AND checkin_time IS NOT NULL AND checkout_time IS NOT NULL ORDER BY checkout_time DESC")
         historical_visitors = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -273,13 +302,13 @@ def admin_export():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT id, name, email, phone, company, purpose, whom_to_meet, temp_id, status, checkin_time, checkout_time, created_at FROM visitors ORDER BY created_at DESC")
+        cursor.execute("SELECT id, name, email, phone, company, purpose, whom_to_meet, temp_id, status, checkin_time, checkout_time, visitor_photo FROM visitors ORDER BY created_at DESC")
         rows = cursor.fetchall()
         cursor.close()
         conn.close()
         wb = openpyxl.Workbook()
         ws = wb.active
-        ws.append(['ID', 'Name', 'Email', 'Phone', 'Company', 'Purpose', 'Whom to Meet', 'Temp ID', 'Status', 'Check-In Time', 'Check-Out Time', 'Created At'])
+        ws.append(['ID', 'Name', 'Email', 'Phone', 'Company', 'Purpose', 'Whom to Meet', 'Temp ID', 'Status', 'Check-In Time', 'Check-Out Time', 'Visitor Photo'])
         for row in rows:
             ws.append(row)
         output = BytesIO()
@@ -522,14 +551,13 @@ def api_visitors():
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, name, email, phone, company, purpose, whom_to_meet, temp_id, status, checkin_time, checkout_time FROM visitors ORDER BY created_at DESC")
+        cursor.execute("SELECT id, name, email, phone, company, purpose, whom_to_meet, temp_id, status, checkin_time, checkout_time, visitor_photo FROM visitors ORDER BY created_at DESC")
         visitors = cursor.fetchall()
         cursor.close()
         conn.close()
         return jsonify({'status': 'success', 'visitors': visitors})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
-# --- END API ENDPOINTS ---
 
 @app.route('/admin/theme', methods=['GET', 'POST'])
 def admin_theme():
@@ -560,4 +588,4 @@ app.jinja_env.globals['HEADER_BG'] = app.config.get('HEADER_BG', '#fff')
 app.jinja_env.globals['HEADER_TEXT'] = app.config.get('HEADER_TEXT', '#009688')
 
 if __name__ == '__main__':
-    app.run(debug=True,  port=6100)
+    app.run(debug=True, port=6100)

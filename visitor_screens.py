@@ -48,6 +48,31 @@ VISITOR_FORM = '''
                 <div id="suggestionButtons" class="d-flex flex-wrap gap-1"></div>
               </div>
             </div>
+            
+            <!-- Camera Capture Section -->
+            <div class="mb-3">
+              <label class="form-label fw-medium">{{ _('Visitor Photo:') }}</label>
+              <div class="camera-container border rounded p-3" style="background-color: #f8f9fa;">
+                <div class="camera">
+                  <video id="video" class="w-100" autoplay>Video stream not available.</video>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                  <button type="button" class="btn btn-primary" id="startbutton">
+                    <i class="fas fa-camera me-2"></i>{{ _('Take Photo') }}
+                  </button>
+                  <button type="button" class="btn btn-secondary" id="retakebutton" style="display:none;">
+                    <i class="fas fa-sync-alt me-2"></i>{{ _('Retake') }}
+                  </button>
+                </div>
+                <canvas id="canvas" class="d-none"></canvas>
+                <div class="output mt-3 text-center" id="output" style="display:none;">
+                  <h6 class="text-muted mb-2">{{ _('Captured Photo:') }}</h6>
+                  <img id="photo" alt="Captured photo will appear here" class="img-thumbnail" style="max-width: 320px;">
+                  <input type="hidden" name="photo_data" id="photoData">
+                </div>
+              </div>
+            </div>
+            
             <div class="d-grid gap-2">
               <button class="btn btn-primary btn-lg btn-raised" type="submit">
                 <i class="fas fa-user-plus me-2"></i>{{ _('Register') }}
@@ -152,6 +177,26 @@ VISITOR_FORM = '''
     object-fit: contain !important;
     aspect-ratio: 1/1 !important;
     display: block !important;
+  }
+  
+  /* Camera styles */
+  #video {
+    border: 1px solid #ddd;
+    width: 100%;
+    max-height: 240px;
+    background-color: #000;
+  }
+  #photo {
+    border: 1px solid #ddd;
+    width: 100%;
+    max-height: 240px;
+  }
+  .camera-container {
+    position: relative;
+  }
+  #startbutton, #retakebutton {
+    padding: 8px 16px;
+    font-size: 14px;
   }
 </style>
 <script src="{{ url_for('static', filename='js/all.min.js') }}"></script>
@@ -275,12 +320,158 @@ VISITOR_FORM = '''
         }
       });
     }
+
+    // Camera functionality
+    (function() {
+      var width = 320; // We will scale the photo width to this
+      var height = 0; // This will be computed based on the input stream
+      var streaming = false;
+      var video = document.getElementById('video');
+      var canvas = document.getElementById('canvas');
+      var photo = document.getElementById('photo');
+      var photoData = document.getElementById('photoData');
+      var startbutton = document.getElementById('startbutton');
+      var retakebutton = document.getElementById('retakebutton');
+      var output = document.getElementById('output');
+      var autoCaptureTimer;
+
+      // Check if camera is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.log("Camera API not supported");
+        startbutton.disabled = true;
+        startbutton.textContent = "Camera not supported";
+        return;
+      }
+
+      // Start the camera automatically
+      function startup() {
+        navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+          })
+          .then(function(stream) {
+            video.srcObject = stream;
+            video.play();
+            
+            // Set up auto-capture after 3 seconds
+            autoCaptureTimer = setTimeout(takepicture, 3000);
+          })
+          .catch(function(err) {
+            console.log("An error occurred: " + err);
+            startbutton.disabled = true;
+            startbutton.textContent = "Camera error";
+          });
+
+        video.addEventListener('canplay', function(ev) {
+          if (!streaming) {
+            height = video.videoHeight / (video.videoWidth / width);
+
+            if (isNaN(height)) {
+              height = width / (4 / 3);
+            }
+
+            video.setAttribute('width', width);
+            video.setAttribute('height', height);
+            canvas.setAttribute('width', width);
+            canvas.setAttribute('height', height);
+            streaming = true;
+          }
+        }, false);
+
+        startbutton.addEventListener('click', function(ev) {
+          clearTimeout(autoCaptureTimer);
+          takepicture();
+          ev.preventDefault();
+        }, false);
+
+        retakebutton.addEventListener('click', function(ev) {
+          retakepicture();
+          ev.preventDefault();
+        }, false);
+
+        clearphoto();
+      }
+
+      function clearphoto() {
+        var context = canvas.getContext('2d');
+        context.fillStyle = "#AAA";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        var data = canvas.toDataURL('image/png');
+        photo.setAttribute('src', data);
+        photoData.value = '';
+      }
+
+      function takepicture() {
+        var context = canvas.getContext('2d');
+        if (width && height) {
+          canvas.width = width;
+          canvas.height = height;
+          context.drawImage(video, 0, 0, width, height);
+
+          var data = canvas.toDataURL('image/jpeg', 0.8);
+          photo.setAttribute('src', data);
+          photoData.value = data;
+          
+          // Show the captured photo and retake button
+          output.style.display = 'block';
+          retakebutton.style.display = 'inline-block';
+          startbutton.style.display = 'none';
+          
+          // Stop the video stream
+          if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+          }
+        } else {
+          clearphoto();
+        }
+      }
+
+      function retakepicture() {
+        // Reset the UI
+        output.style.display = 'none';
+        retakebutton.style.display = 'none';
+        startbutton.style.display = 'inline-block';
+        clearphoto();
+        
+        // Restart the camera
+        navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+          })
+          .then(function(stream) {
+            video.srcObject = stream;
+            video.play();
+            
+            // Set up auto-capture again
+            autoCaptureTimer = setTimeout(takepicture, 3000);
+          })
+          .catch(function(err) {
+            console.log("Error restarting camera: " + err);
+          });
+      }
+
+      // Start the camera when page loads
+      window.addEventListener('load', startup, false);
+    })();
   });
 </script>
 '''
 
 def render_visitor_form():
     return render_template_string(themed(VISITOR_FORM))
+
+def render_checkout_form():
+    return render_template_string(themed(CHECKOUT_FORM))
+
+def render_qr_display(name, company, temp_id, photo_filename=None):
+    from markupsafe import Markup
+    safe_display = Markup(themed(QR_DISPLAY))
+    return render_template_string(safe_display, 
+                                name=name, 
+                                company=company, 
+                                temp_id=temp_id,
+                                photo_filename=photo_filename)
 
 QR_DISPLAY = '''
 {% include 'visitor_header.html' %}
@@ -289,7 +480,7 @@ QR_DISPLAY = '''
     <!-- Registration success display -->
     <div class="col-12 col-lg-7 d-flex align-items-stretch">
       <div class="card w-100 shadow-sm d-flex flex-column justify-content-start">
-        <div class="card-header bg-success text-white p-4">
+        <div class="card-header bg-success text-white p-4 text-center">
           <h3 class="mb-0">Registration Successful</h3>
         </div>
         <div class="card-body p-4 text-center">
@@ -323,6 +514,21 @@ QR_DISPLAY = '''
                     <span class="text-muted fw-medium">Temporary ID:</span>
                     <span class="fw-bold">{{ temp_id }}</span>
                   </div>
+                    
+    <!-- Add the photo display here -->
+    {% if photo_filename %}
+    <div class="mb-3">
+        <img src="{{ url_for('static', filename='images/visitor_photos/' + photo_filename) }}" 
+             alt="Visitor Photo" 
+             class="img-thumbnail rounded-circle" 
+             style="width: 120px; height: 120px; object-fit: cover;">
+    </div>
+    {% endif %}
+                  # {% if photo_data %}
+                  # <div class="mb-3">
+                  #   <img src="{{ photo_data }}" alt="Visitor Photo" class="img-thumbnail rounded-circle" style="width: 120px; height: 120px; object-fit: cover;">
+                  # </div>
+                  # {% endif %}
                   <div class="mb-2">
                     <img src="{{ url_for('qr_code', temp_id=temp_id) }}" alt="QR Code" class="mb-3 border p-2 d-block mx-auto" id="qrCodeImage">
                     <div class="d-flex justify-content-center gap-3 mt-3">
@@ -1162,10 +1368,14 @@ def render_visitor_form():
 def render_checkout_form():
     return render_template_string(themed(CHECKOUT_FORM))
 
-def render_qr_display(name, company, temp_id):
+def render_qr_display(name, company, temp_id, photo_filename=None):
     from markupsafe import Markup
     safe_display = Markup(themed(QR_DISPLAY))
-    return render_template_string(safe_display, name=name, company=company, temp_id=temp_id)
+    return render_template_string(safe_display, 
+                                name=name, 
+                                company=company, 
+                                temp_id=temp_id,
+                                photo_filename=photo_filename)
 
 QR_DISPLAY = '''
 {% include 'visitor_header.html' %}
@@ -1174,7 +1384,7 @@ QR_DISPLAY = '''
     <!-- Registration success display -->
     <div class="col-12 col-lg-7 d-flex align-items-stretch">
       <div class="card w-100 shadow-sm d-flex flex-column justify-content-start">
-        <div class="card-header bg-success text-white p-4">
+        <div class="card-header bg-success text-white p-4 text-center">
           <h3 class="mb-0">Registration Successful</h3>
         </div>
         <div class="card-body p-4 text-center">
